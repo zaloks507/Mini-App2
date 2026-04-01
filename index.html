@@ -1,151 +1,179 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram Profile App</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
+<meta charset="UTF-8">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>Cyber App</title>
 
-    .container {
-      width: 320px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
-      backdrop-filter: blur(15px);
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      position: relative;
-      overflow: hidden;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: black;
+  color: cyan;
+  overflow: hidden;
+}
 
-    .slider {
-      display: flex;
-      transition: transform 0.4s ease;
-    }
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
 
-    .slide {
-      min-width: 100%;
-      text-align: center;
-    }
+.container {
+  text-align: center;
+  margin-top: 40px;
+}
 
-    .avatar {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      margin: 10px auto;
-      background-size: cover;
-      background-position: center;
-      border: 3px solid rgba(255,255,255,0.3);
-    }
+.profile img {
+  width: 120px;
+  border-radius: 50%;
+  box-shadow: 0 0 20px cyan;
+}
 
-    .name {
-      font-size: 20px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
+button {
+  padding: 10px 20px;
+  background: black;
+  border: 2px solid cyan;
+  color: cyan;
+  cursor: pointer;
+  margin: 10px;
+  transition: 0.3s;
+}
 
-    .info {
-      margin-top: 10px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    .buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
-    }
-
-    button {
-      flex: 1;
-      margin: 5px;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.1);
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background: rgba(255,255,255,0.3);
-    }
-  </style>
+button:hover {
+  background: cyan;
+  color: black;
+}
+</style>
 </head>
+
 <body>
 
+<canvas id="stars"></canvas>
+
 <div class="container">
-  <div class="slider" id="slider">
+  <h1>👾 CYBER PROFILE</h1>
 
-    <div class="slide">
-      <h2>👋 Добро пожаловать</h2>
-      <p>Это твой Telegram Mini App</p>
-    </div>
-
-    <div class="slide">
-      <div class="avatar" id="avatar"></div>
-      <div class="name" id="name">Имя</div>
-      <div class="info" id="id">ID: -</div>
-      <div class="info" id="date">Дата регистрации: неизвестно</div>
-    </div>
-
+  <div class="profile">
+    <img id="avatar">
+    <h2 id="name"></h2>
+    <p id="username"></p>
+    <p id="id"></p>
   </div>
 
-  <div class="buttons">
-    <button onclick="prevSlide()">⬅</button>
-    <button onclick="nextSlide()">➡</button>
-  </div>
+  <button onclick="showInfo()">Инфо</button>
+  <button onclick="playMusic()">▶ Музыка</button>
 </div>
 
+<!-- 🎧 Музыка -->
+<audio id="bgMusic" loop>
+  <source src="https://files.catbox.moe/7l6h0x.mp3" type="audio/mpeg">
+</audio>
+
 <script>
-  let current = 0;
+const tg = window.Telegram.WebApp;
+tg.expand();
 
-  function updateSlider() {
-    document.getElementById('slider').style.transform = `translateX(-${current * 100}%)`;
-  }
+// 👤 Пользователь
+const user = tg.initDataUnsafe.user || {
+  first_name: "Guest",
+  username: "unknown",
+  id: "0000"
+};
 
-  function nextSlide() {
-    if (current < 1) current++;
-    updateSlider();
-  }
+document.getElementById("name").innerText =
+  user.first_name + " " + (user.last_name || "");
 
-  function prevSlide() {
-    if (current > 0) current--;
-    updateSlider();
-  }
+document.getElementById("username").innerText =
+  "@" + (user.username || "нет");
 
-  const tg = window.Telegram.WebApp;
-  tg.expand();
+document.getElementById("id").innerText =
+  "ID: " + user.id;
 
-  const user = tg.initDataUnsafe?.user;
+document.getElementById("avatar").src =
+  "https://i.pravatar.cc/150?u=" + user.id;
 
-  if (user) {
-    document.getElementById('name').innerText =
-      user.first_name + (user.last_name ? ' ' + user.last_name : '');
+// 📦 Popup
+function showInfo() {
+  tg.showPopup({
+    title: "Данные",
+    message: `ID: ${user.id}\nUsername: @${user.username}`,
+    buttons: [{ type: "ok" }]
+  });
+}
 
-    document.getElementById('id').innerText = 'ID: ' + user.id;
+// 🎧 Музыка
+function playMusic() {
+  const music = document.getElementById("bgMusic");
+  music.volume = 0.5;
+  music.play();
+}
 
-    if (user.photo_url) {
-      document.getElementById('avatar').style.backgroundImage =
-        `url(${user.photo_url})`;
+// 🌌 Звезды
+const canvas = document.getElementById("stars");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let stars = [];
+
+for (let i = 0; i < 120; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    speed: Math.random() * 2 + 0.5
+  });
+}
+
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "white";
+
+  stars.forEach(s => {
+    ctx.fillRect(s.x, s.y, 2, 2);
+    s.y += s.speed;
+
+    if (s.y > canvas.height) {
+      s.y = 0;
+      s.x = Math.random() * canvas.width;
     }
+  });
 
-    // Telegram не даёт дату регистрации
-    document.getElementById('date').innerText =
-      'Дата регистрации: недоступна';
-  }
+  requestAnimationFrame(drawStars);
+}
+
+drawStars();
+
+// 👾 Кибер-монстр
+const monster = document.createElement("div");
+
+monster.style.position = "fixed";
+monster.style.bottom = "40px";
+monster.style.left = "50%";
+monster.style.transform = "translateX(-50%)";
+monster.style.width = "150px";
+monster.style.height = "150px";
+monster.style.borderRadius = "50%";
+monster.style.background = "radial-gradient(circle, cyan, transparent)";
+monster.style.boxShadow = "0 0 50px cyan";
+
+document.body.appendChild(monster);
+
+let angle = 0;
+
+function animateMonster() {
+  angle += 0.05;
+  monster.style.transform =
+    `translateX(-50%) translateY(${Math.sin(angle) * 20}px)`;
+
+  requestAnimationFrame(animateMonster);
+}
+
+animateMonster();
 </script>
 
 </body>
