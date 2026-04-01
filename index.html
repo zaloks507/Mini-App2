@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My TG Mini App</title>
+    <!-- Подключаем SDK Телеграма -->
+    <script src="https://telegram.org"></script>
+    <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-button-color: #3390ec;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-text-color: #000000;
+        }
+
+        body {
+            font-family: sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        button {
+            background-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        h1 { font-size: 24px; }
+        #counter { font-size: 48px; font-weight: bold; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 id="user-name">Привет!</h1>
+        <div id="counter">0</div>
+        <button id="btn-click">Кликни меня!</button>
+        <button id="btn-close" style="background: #e53935; display: block; width: 100%;">Закрыть</button>
+    </div>
+
+    <script>
+        // Инициализация WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Раскрываем на всё окно
+
+        const btnClick = document.getElementById('btn-click');
+        const btnClose = document.getElementById('btn-close');
+        const counterEl = document.getElementById('counter');
+        const userName = document.getElementById('user-name');
+
+        let count = 0;
+
+        // Берем имя пользователя из данных Телеграма
+        if (tg.initDataUnsafe?.user) {
+            userName.innerText = `Привет, ${tg.initDataUnsafe.user.first_name}!`;
+        }
+
+        btnClick.addEventListener('click', () => {
+            count++;
+            counterEl.innerText = count;
+            
+            // Легкая вибрация при клике
+            tg.HapticFeedback.impactOccurred('medium');
+        });
+
+        btnClose.addEventListener('click', () => {
+            tg.close(); // Закрыть мини-приложение
+        });
+
+        // Сообщаем Телеграму, что приложение готово
+        tg.ready();
+    </script>
+</body>
+</html>
