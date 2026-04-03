@@ -1,155 +1,66 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram Profile App</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .container {
-      width: 320px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
-      backdrop-filter: blur(15px);
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .slider {
-      display: flex;
-      transition: transform 0.4s ease;
-    }
-
-    .slide {
-      min-width: 100%;
-      text-align: center;
-    }
-
-    .avatar {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      margin: 10px auto;
-      background-size: cover;
-      background-position: center;
-      border: 3px solid rgba(255,255,255,0.3);
-    }
-
-    .name {
-      font-size: 20px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .info {
-      margin-top: 10px;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    .buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
-    }
-
-    button {
-      flex: 1;
-      margin: 5px;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.1);
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background: rgba(255,255,255,0.3);
-    }
-  </style>
-</head>
-<body>
-
-<div class="container">
-  <div class="slider" id="slider">
-
-    <div class="slide">
-      <h2>👋 Добро пожаловать</h2>
-      <p>Это твой Telegram Mini App</p>
-    </div>
-
-    <div class="slide">
-      <div class="avatar" id="avatar"></div>
-      <div class="name" id="name">Имя</div>
-      <div class="info" id="id">ID: -</div>
-      <div class="info" id="date">Дата регистрации: неизвестно</div>
-    </div>
-
-  </div>
-
-  <div class="buttons">
-    <button onclick="prevSlide()">⬅</button>
-    <button onclick="nextSlide()">➡</button>
-  </div>
-</div>
-
-<script>
-  let current = 0;
-
-  function updateSlider() {
-    document.getElementById('slider').style.transform = `translateX(-${current * 100}%)`;
-  }
-
-  function nextSlide() {
-    if (current < 1) current++;
-    updateSlider();
-  }
-
-  function prevSlide() {
-    if (current > 0) current--;
-    updateSlider();
-  }
-
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-
-  const user = tg.initDataUnsafe?.user;
-
-  if (user) {
-    document.getElementById('name').innerText =
-      user.first_name + (user.last_name ? ' ' + user.last_name : '');
-
-    document.getElementById('id').innerText = 'ID: ' + user.id;
-
-    if (user.photo_url) {
-      document.getElementById('avatar').style.backgroundImage =
-        `url(${user.photo_url})`;
-    }
-
-    // Telegram не даёт дату регистрации
-    document.getElementById('date').innerText =
-      'Дата регистрации: недоступна';
-  }
-</script>
-
-</body>
-</html>  flex: 1;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telegram Profile App + Chat</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+.container {
+  width: 360px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: hidden;
+}
+.slider {
+  display: flex;
+  transition: transform 0.4s ease;
+}
+.slide {
+  min-width: 100%;
+  text-align: center;
+}
+.avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  margin: 10px auto;
+  background-size: cover;
+  background-position: center;
+  border: 3px solid rgba(255,255,255,0.3);
+}
+.name {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+.info {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+button {
+  flex: 1;
   margin: 5px;
   padding: 10px;
   border: none;
@@ -271,91 +182,4 @@ sendBtn.addEventListener('click', ()=>{
 </script>
 
 </body>
-</html>let users = [];
-let messages = [];
-
-let chatBox = document.getElementById('chat-box');
-let input = document.getElementById('message-input');
-let sendBtn = document.getElementById('send-btn');
-let userList = document.getElementById('user-list');
-
-// Функция авторизации через Telegram
-function onTelegramAuth(user) {
-    // user = {id, first_name, last_name, username, photo_url}
-    console.log("Telegram user:", user);
-
-    // Скрываем виджет, показываем приложение
-    document.getElementById('login-container').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-
-    // Добавляем текущего пользователя в список
-    let currentUser = {
-        id: user.id,
-        name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
-        username: user.username,
-        avatar: user.photo_url,
-        status: 'активен',
-        messages: 0
-    };
-    users.push(currentUser);
-
-    // Отображаем список
-    renderUsers();
-    renderChat();
-
-    // Сохраняем текущего пользователя
-    window.currentUser = currentUser;
-}
-
-// Рендер списка пользователей
-function renderUsers() {
-    userList.innerHTML = '';
-    users.forEach(user => {
-        let btn = document.createElement('button');
-        btn.textContent = user.name;
-        btn.onclick = () => showProfile(user.id);
-        userList.appendChild(btn);
-    });
-}
-
-// Рендер чата
-function renderChat() {
-    chatBox.innerHTML = '';
-    messages.forEach(msg => {
-        const div = document.createElement('div');
-        div.textContent = `${msg.user}: ${msg.text}`;
-        chatBox.appendChild(div);
-    });
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// Отправка сообщения
-sendBtn.addEventListener('click', () => {
-    const text = input.value.trim();
-    if (!text) return;
-    messages.push({user: window.currentUser.name, text});
-    input.value = '';
-    renderChat();
-
-    // Увеличиваем счетчик сообщений
-    window.currentUser.messages++;
-    renderUsers();
-});
-
-// Профиль
-function showProfile(id) {
-    const user = users.find(u => u.id === id);
-    if (!user) return;
-    document.getElementById('profile-avatar').src = user.avatar || 'https://via.placeholder.com/120';
-    document.getElementById('profile-name').textContent = user.name;
-    document.getElementById('profile-status').textContent = `Статус: ${user.status}`;
-    document.getElementById('profile-messages').textContent = `Сообщений: ${user.messages}`;
-    document.getElementById('profile').style.display = 'block';
-}
-function closeProfile() {
-    document.getElementById('profile').style.display = 'none';
-}
-</script>
-
-</body>
-</html>
+  </html>
