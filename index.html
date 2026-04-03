@@ -3,64 +3,186 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telegram Social Bot</title>
+<title>Telegram Profile App + Chat</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-body {font-family: Arial, sans-serif; background:#121212; color:#f0f0f0; margin:0; padding:0;}
-header {background:#1E90FF; padding:20px; text-align:center;}
-main {padding:20px;}
-button,input {font-size:16px;}
-#chat-box {height:300px; border:1px solid #555; padding:10px; overflow-y:auto; margin-bottom:10px;}
-#message-input {width:70%; padding:10px;}
-#send-btn {padding:10px 20px;}
-.profile {display:none; text-align:center;}
-.profile img {width:120px; border-radius:50%;}
-.user-list {margin-bottom:20px;}
-.user-list button {margin:5px; padding:5px 10px; cursor:pointer;}
-#login-btn {margin:20px auto; display:block;}
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+.container {
+  width: 360px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  position: relative;
+  overflow: hidden;
+}
+.slider {
+  display: flex;
+  transition: transform 0.4s ease;
+}
+.slide {
+  min-width: 100%;
+  text-align: center;
+}
+.avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  margin: 10px auto;
+  background-size: cover;
+  background-position: center;
+  border: 3px solid rgba(255,255,255,0.3);
+}
+.name {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+.info {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+button {
+  flex: 1;
+  margin: 5px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* Чат */
+#chat-box {
+  height: 200px;
+  border: 1px solid rgba(255,255,255,0.3);
+  overflow-y: auto;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.2);
+}
+#message-input {
+  width: 70%;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: none;
+}
+#send-btn {
+  padding: 8px 12px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  color: white;
+}
 </style>
 </head>
 <body>
 
-<header>
-<h1>Telegram Social Bot</h1>
-</header>
-
-<main>
-<div id="login-container">
-    <!-- Telegram login widget -->
-    <script async src="https://telegram.org/js/telegram-widget.js?7"
-        data-telegram-login="@ZaloksBot"
-        data-size="large"
-        data-userpic="true"
-        data-request-access="write"
-        data-userpic="true"
-        data-radius="10"
-        data-auth-url="#"
-        data-onauth="onTelegramAuth(user)"></script>
-</div>
-
-<div id="app" style="display:none;">
-    <h2>Общий чат</h2>
-    <div id="chat-box"></div>
-    <input type="text" id="message-input" placeholder="Написать сообщение...">
-    <button id="send-btn">Отправить</button>
-
-    <h2>Пользователи</h2>
-    <div class="user-list" id="user-list"></div>
-
-    <div class="profile" id="profile">
-        <img src="" alt="Аватар" id="profile-avatar">
-        <h3 id="profile-name"></h3>
-        <p id="profile-status"></p>
-        <p id="profile-messages"></p>
-        <button onclick="closeProfile()">Закрыть профиль</button>
+<div class="container">
+  <div class="slider" id="slider">
+    <div class="slide">
+      <h2>👋 Добро пожаловать</h2>
+      <p>Это твой Telegram Mini App</p>
     </div>
+    <div class="slide">
+      <div class="avatar" id="avatar"></div>
+      <div class="name" id="name">Имя</div>
+      <div class="info" id="id">ID: -</div>
+      <div class="info" id="username">Username: -</div>
+    </div>
+    <div class="slide">
+      <h2>Чат с пользователями</h2>
+      <div id="chat-box"></div>
+      <input type="text" id="message-input" placeholder="Написать сообщение...">
+      <button id="send-btn">Отправить</button>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button onclick="prevSlide()">⬅</button>
+    <button onclick="nextSlide()">➡</button>
+  </div>
 </div>
-</main>
 
 <script>
-// Пользователи и сообщения
-let users = [];
+let current = 0;
+function updateSlider() {
+  document.getElementById('slider').style.transform = `translateX(-${current*100}%)`;
+}
+function nextSlide(){ if(current<2) current++; updateSlider();}
+function prevSlide(){ if(current>0) current--; updateSlider();}
+
+const tg = window.Telegram.WebApp;
+tg.expand();
+const user = tg.initDataUnsafe?.user;
+
+if(user){
+  document.getElementById('name').innerText = user.first_name + (user.last_name? ' '+user.last_name : '');
+  document.getElementById('id').innerText = 'ID: '+user.id;
+  document.getElementById('username').innerText = 'Username: '+(user.username||'-');
+  if(user.photo_url) document.getElementById('avatar').style.backgroundImage = `url(${user.photo_url})`;
+}
+
+// ===== Чат =====
+// WebSocket сервер должен быть развернут отдельно
+// Пример: ws://localhost:8080
+const chatBox = document.getElementById('chat-box');
+const input = document.getElementById('message-input');
+const sendBtn = document.getElementById('send-btn');
+
+let ws = new WebSocket('wss://yourserver.example.com'); // <- сюда поставить адрес твоего WS сервера
+
+ws.onopen = () => {
+  console.log('Connected to chat server');
+  // Отправляем информацию о пользователе серверу
+  ws.send(JSON.stringify({type:'join', user:{id:user.id,name:user.first_name}}));
+};
+
+ws.onmessage = (event) => {
+  const msg = JSON.parse(event.data);
+  const div = document.createElement('div');
+  div.innerText = `${msg.user}: ${msg.text}`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+};
+
+sendBtn.addEventListener('click', ()=>{
+  const text = input.value.trim();
+  if(!text) return;
+  const message = {type:'message', user:user.first_name, text};
+  ws.send(JSON.stringify(message));
+  input.value='';
+});
+</script>
+
+</body>
+</html>let users = [];
 let messages = [];
 
 let chatBox = document.getElementById('chat-box');
