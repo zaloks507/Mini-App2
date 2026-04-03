@@ -2,178 +2,148 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<title>Cyber Ap</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telegram Social Bot</title>
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: black;
-  color: cyan;
-  overflow: hidden;
-}
-
-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: -1;
-}
-
-.container {
-  text-align: center;
-  margin-top: 40px;
-}
-
-.profile img {
-  width: 120px;
-  border-radius: 50%;
-  box-shadow: 0 0 20px cyan;
-}
-
-button {
-  padding: 10px 20px;
-  background: black;
-  border: 2px solid cyan;
-  color: cyan;
-  cursor: pointer;
-  margin: 10px;
-  transition: 0.3s;
-}
-
-button:hover {
-  background: cyan;
-  color: black;
-}
+body {font-family: Arial, sans-serif; background:#121212; color:#f0f0f0; margin:0; padding:0;}
+header {background:#1E90FF; padding:20px; text-align:center;}
+main {padding:20px;}
+button,input {font-size:16px;}
+#chat-box {height:300px; border:1px solid #555; padding:10px; overflow-y:auto; margin-bottom:10px;}
+#message-input {width:70%; padding:10px;}
+#send-btn {padding:10px 20px;}
+.profile {display:none; text-align:center;}
+.profile img {width:120px; border-radius:50%;}
+.user-list {margin-bottom:20px;}
+.user-list button {margin:5px; padding:5px 10px; cursor:pointer;}
+#login-btn {margin:20px auto; display:block;}
 </style>
 </head>
-
 <body>
 
-<canvas id="stars"></canvas>
+<header>
+<h1>Telegram Social Bot</h1>
+</header>
 
-<div class="container">
-  <h1>👾 CYBER PROFILE</h1>
-
-  <div class="profile">
-    <img id="avatar">
-    <h2 id="name"></h2>
-    <p id="username"></p>
-    <p id="id"></p>
-  </div>
-
-  <button onclick="showInfo()">Инфо</button>
-  <button onclick="playMusic()">▶ Музыка</button>
+<main>
+<div id="login-container">
+    <!-- Telegram login widget -->
+    <script async src="https://telegram.org/js/telegram-widget.js?7"
+        data-telegram-login="zaloksbot"
+        data-size="large"
+        data-userpic="true"
+        data-request-access="write"
+        data-userpic="true"
+        data-radius="10"
+        data-auth-url="#"
+        data-onauth="onTelegramAuth(user)"></script>
 </div>
 
-<!-- 🎧 Музыка -->
-<audio id="bgMusic" loop>
-  <source src="https://open.spotify.com/track/0UZ5AmgbIWJPWDAaXXjb75?si=e220b86865bc43d7" type="audio/mpeg">
-</audio>
+<div id="app" style="display:none;">
+    <h2>Общий чат</h2>
+    <div id="chat-box"></div>
+    <input type="text" id="message-input" placeholder="Написать сообщение...">
+    <button id="send-btn">Отправить</button>
+
+    <h2>Пользователи</h2>
+    <div class="user-list" id="user-list"></div>
+
+    <div class="profile" id="profile">
+        <img src="" alt="Аватар" id="profile-avatar">
+        <h3 id="profile-name"></h3>
+        <p id="profile-status"></p>
+        <p id="profile-messages"></p>
+        <button onclick="closeProfile()">Закрыть профиль</button>
+    </div>
+</div>
+</main>
 
 <script>
-const tg = window.Telegram.WebApp;
-tg.expand();
+// Пользователи и сообщения
+let users = [];
+let messages = [];
 
-// 👤 Пользователь
-const user = tg.initDataUnsafe.user || {
-  first_name: "Guest",
-  username: "unknown",
-  id: "0000"
-};
+let chatBox = document.getElementById('chat-box');
+let input = document.getElementById('message-input');
+let sendBtn = document.getElementById('send-btn');
+let userList = document.getElementById('user-list');
 
-document.getElementById("name").innerText =
-  user.first_name + " " + (user.last_name || "");
+// Функция авторизации через Telegram
+function onTelegramAuth(user) {
+    // user = {id, first_name, last_name, username, photo_url}
+    console.log("Telegram user:", user);
 
-document.getElementById("username").innerText =
-  "@" + (user.username || "нет");
+    // Скрываем виджет, показываем приложение
+    document.getElementById('login-container').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
 
-document.getElementById("id").innerText =
-  "ID: " + user.id;
+    // Добавляем текущего пользователя в список
+    let currentUser = {
+        id: user.id,
+        name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+        username: user.username,
+        avatar: user.photo_url,
+        status: 'активен',
+        messages: 0
+    };
+    users.push(currentUser);
 
-document.getElementById("avatar").src =
-  "https://i.pravatar.cc/150?u=" + user.id;
+    // Отображаем список
+    renderUsers();
+    renderChat();
 
-// 📦 Popup
-function showInfo() {
-  tg.showPopup({
-    title: "Данные",
-    message: `ID: ${user.id}\nUsername: @${user.username}`,
-    buttons: [{ type: "ok" }]
-  });
+    // Сохраняем текущего пользователя
+    window.currentUser = currentUser;
 }
 
-// 🎧 Музыка
-function playMusic() {
-  const music = document.getElementById("bgMusic");
-  music.volume = 5.5;
-  music.play();
+// Рендер списка пользователей
+function renderUsers() {
+    userList.innerHTML = '';
+    users.forEach(user => {
+        let btn = document.createElement('button');
+        btn.textContent = user.name;
+        btn.onclick = () => showProfile(user.id);
+        userList.appendChild(btn);
+    });
 }
 
-// 🌌 Звезды
-const canvas = document.getElementById("stars");
-const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let stars = [];
-
-for (let i = 0; i < 120; i++) {
-  stars.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    speed: Math.random() * 2 + 0.5
-  });
+// Рендер чата
+function renderChat() {
+    chatBox.innerHTML = '';
+    messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.textContent = `${msg.user}: ${msg.text}`;
+        chatBox.appendChild(div);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-function drawStars() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Отправка сообщения
+sendBtn.addEventListener('click', () => {
+    const text = input.value.trim();
+    if (!text) return;
+    messages.push({user: window.currentUser.name, text});
+    input.value = '';
+    renderChat();
 
-  ctx.fillStyle = "white";
+    // Увеличиваем счетчик сообщений
+    window.currentUser.messages++;
+    renderUsers();
+});
 
-  stars.forEach(s => {
-    ctx.fillRect(s.x, s.y, 2, 2);
-    s.y += s.speed;
-
-    if (s.y > canvas.height) {
-      s.y = 0;
-      s.x = Math.random() * canvas.width;
-    }
-  });
-
-  requestAnimationFrame(drawStars);
+// Профиль
+function showProfile(id) {
+    const user = users.find(u => u.id === id);
+    if (!user) return;
+    document.getElementById('profile-avatar').src = user.avatar || 'https://via.placeholder.com/120';
+    document.getElementById('profile-name').textContent = user.name;
+    document.getElementById('profile-status').textContent = `Статус: ${user.status}`;
+    document.getElementById('profile-messages').textContent = `Сообщений: ${user.messages}`;
+    document.getElementById('profile').style.display = 'block';
 }
-
-drawStars();
-
-// 👾 Кибер-монстр
-const monster = document.createElement("div");
-
-monster.style.position = "fixed";
-monster.style.bottom = "40px";
-monster.style.left = "50%";
-monster.style.transform = "translateX(-50%)";
-monster.style.width = "150px";
-monster.style.height = "150px";
-monster.style.borderRadius = "50%";
-monster.style.background = "radial-gradient(circle, cyan, transparent)";
-monster.style.boxShadow = "0 0 50px cyan";
-
-document.body.appendChild(monster);
-
-let angle = 0;
-
-function animateMonster() {
-  angle += 0.05;
-  monster.style.transform =
-    `translateX(-50%) translateY(${Math.sin(angle) * 20}px)`;
-
-  requestAnimationFrame(animateMonster);
+function closeProfile() {
+    document.getElementById('profile').style.display = 'none';
 }
-
-animateMonster();
 </script>
 
 </body>
